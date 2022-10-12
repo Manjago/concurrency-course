@@ -11,7 +11,9 @@ import java.util.concurrent.Future;
 
 public class ReportServiceExecutors {
 
-    private ExecutorService executor = Executors.newCachedThreadPool();
+ //   private ExecutorService executor = Executors.newCachedThreadPool();
+     private ExecutorService executor = Executors.newFixedThreadPool(256);
+//    private ExecutorService executor = Executors.newWorkStealingPool(128);
 
     private LoadGenerator loadGenerator = new LoadGenerator();
 
