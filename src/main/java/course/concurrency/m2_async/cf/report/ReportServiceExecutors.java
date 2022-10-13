@@ -1,10 +1,12 @@
 package course.concurrency.m2_async.cf.report;
 
 import course.concurrency.m2_async.cf.LoadGenerator;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -12,8 +14,9 @@ import java.util.concurrent.Future;
 public class ReportServiceExecutors {
 
  //   private ExecutorService executor = Executors.newCachedThreadPool();
-     private ExecutorService executor = Executors.newFixedThreadPool(256);
+ //    private ExecutorService executor = Executors.newFixedThreadPool(256);
 //    private ExecutorService executor = Executors.newWorkStealingPool(128);
+ private SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
 
     private LoadGenerator loadGenerator = new LoadGenerator();
 
@@ -48,6 +51,6 @@ public class ReportServiceExecutors {
     }
 
     public void shutdown() {
-        executor.shutdown();
+      //  executor.shutdown();
     }
 }
