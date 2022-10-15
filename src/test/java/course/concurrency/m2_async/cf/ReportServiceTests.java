@@ -4,8 +4,11 @@ import course.concurrency.m2_async.cf.report.ReportServiceCF;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -32,8 +35,8 @@ public class ReportServiceTests {
             "Executors.newWorkStealingPool()", Executors::newWorkStealingPool,
             "Executors.newWorkStealingPool(24) ", () -> Executors.newWorkStealingPool(24),
             "Executors.newWorkStealingPool(32) ", () -> Executors.newWorkStealingPool(32),
-            "Executors.newWorkStealingPool(64) ", () -> Executors.newWorkStealingPool(64),
-            "Executors.newWorkStealingPool(128) ", () -> Executors.newWorkStealingPool(128)
+            "Executors.newWorkStealingPool(64)", () -> Executors.newWorkStealingPool(64),
+            "Executors.newWorkStealingPool(128)", () -> Executors.newWorkStealingPool(128)
     );
 
     private static long getExecutionTime(ReportServiceCF reportService) {
@@ -73,13 +76,26 @@ public class ReportServiceTests {
 
     @Test
     void testExecutionReport() {
-        final TreeMap<Long, String> executionReport = new TreeMap<>();
-        final var reportBenchmark = new ReportBenchmark(executionReport);
-        executorFactoriesPart1.forEach(reportBenchmark);
-        executorFactoriesPart2.forEach(reportBenchmark);
-        System.out.println("***** REPORT BEGIN *****");
-        executionReport.forEach((ignored, s) -> System.out.println(s));
-        System.out.println("***** REPORT END *****");
+        final Map<String, ExecutorFactory> executorFactories = new HashMap<>();
+        executorFactories.putAll(executorFactoriesPart1);
+        executorFactories.putAll(executorFactoriesPart2);
+
+        final Map<String, List<Long>> data = new HashMap<>();
+        final var reportBenchmark = new ReportBenchmark(data);
+
+        final int iterations = 10;
+        for (int i = 0; i < iterations; i++) {
+            System.out.println("Iteration " + (i + 1) + " of " + iterations);
+            executorFactories.forEach(reportBenchmark);
+        }
+
+        System.out.println("----- REPORT BEGIN -----");
+        data.forEach((executorType, longs) -> {
+            final long min = Collections.min(longs);
+            final long max = Collections.max(longs);
+            System.out.println("|" + executorType + "|compute|" + min + "|" + max);
+        });
+        System.out.println("----- REPORT END -----");
     }
 
     @Test
@@ -95,18 +111,24 @@ public class ReportServiceTests {
     }
 
     private static class ReportBenchmark implements BiConsumer<String, ExecutorFactory> {
-        private final TreeMap<Long, String> executionReport;
+        private final Map<String, List<Long>> data;
 
-        public ReportBenchmark(TreeMap<Long, String> executionReport) {
-            this.executionReport = executionReport;
+        public ReportBenchmark(Map<String, List<Long>> data) {
+            this.data = data;
         }
 
         @Override
         public void accept(String executorType, ExecutorFactory executorFactory) {
             final long executionTime = getExecutionTime(new ReportServiceCF(executorFactory.create()));
-            final String reportString = "| " + executorType + " | compute  | " + executionTime + "|";
-            System.out.println(reportString);
-            executionReport.put(executionTime, reportString);
+            System.out.println("" + executorType + " execution time: " + executionTime);
+            final List<Long> dataItem = data.get(executorType);
+            if (dataItem != null) {
+                dataItem.add(executionTime);
+            } else {
+                var newItem = new ArrayList<Long>();
+                newItem.add(executionTime);
+                data.put(executorType, newItem);
+            }
         }
     }
 }
