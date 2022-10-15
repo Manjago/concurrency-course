@@ -6,13 +6,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 
 public class ReportServiceCF {
-
-    private ExecutorService executor = ForkJoinPool.commonPool();
-
+    private final ExecutorService executor;
     private LoadGenerator loadGenerator = new LoadGenerator();
+
+    public ReportServiceCF(ExecutorService executor) {
+        this.executor = executor;
+    }
 
     public Others.Report getReport() {
         CompletableFuture<Collection<Others.Item>> itemsCF =

@@ -13,12 +13,13 @@ import java.util.concurrent.Future;
 
 public class ReportServiceExecutors {
 
- //   private ExecutorService executor = Executors.newCachedThreadPool();
- //    private ExecutorService executor = Executors.newFixedThreadPool(256);
-//    private ExecutorService executor = Executors.newWorkStealingPool(128);
- private SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+    private final ExecutorService executor;
 
-    private LoadGenerator loadGenerator = new LoadGenerator();
+    private final LoadGenerator loadGenerator = new LoadGenerator();
+
+    public ReportServiceExecutors(ExecutorService executor) {
+        this.executor = executor;
+    }
 
     public Others.Report getReport() {
         Future<Collection<Others.Item>> iFuture =
@@ -51,6 +52,6 @@ public class ReportServiceExecutors {
     }
 
     public void shutdown() {
-      //  executor.shutdown();
+       executor.shutdown();
     }
 }
