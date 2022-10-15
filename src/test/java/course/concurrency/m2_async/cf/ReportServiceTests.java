@@ -93,7 +93,7 @@ public class ReportServiceTests {
         data.forEach((executorType, longs) -> {
             final long min = Collections.min(longs);
             final long max = Collections.max(longs);
-            System.out.println("|" + executorType + "|compute|" + min + "|" + max);
+            System.out.println("|" + executorType + "|sleep|" + min + "|" + max);
         });
         System.out.println("----- REPORT END -----");
     }
