@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 public class PriceAggregator {
 
@@ -24,21 +24,19 @@ public class PriceAggregator {
         final int CORRECTED_SLA = 3000 - 20;
 
         final var completableFutures =
-                shopIds.stream().map(shopId -> CompletableFuture.supplyAsync(() -> priceRetriever.getPrice(itemId, shopId))).toArray(CompletableFuture[]::new);
+                shopIds.stream().map(shopId -> CompletableFuture.supplyAsync(() -> priceRetriever.getPrice(itemId, shopId))).collect(Collectors.toList());
 
         try {
             CompletableFuture
-                    .allOf(completableFutures).get(CORRECTED_SLA, TimeUnit.MILLISECONDS);
+                    .allOf(completableFutures.toArray(new CompletableFuture[0])).get(CORRECTED_SLA, TimeUnit.MILLISECONDS);
         } catch (Exception ignored) {
             // do nothing
         }
 
-        return Stream.of(completableFutures)
+        return completableFutures.stream()
                 .filter(future -> future.isDone() && !future.isCompletedExceptionally())
-                .map(CompletableFuture::join)
-                .map(object -> (Double) object)
-                .min(Double::compareTo).orElse(Double.NaN);
-
+                .mapToDouble(CompletableFuture::join)
+                .min().orElse(Double.NaN);
     }
 
 
