@@ -52,7 +52,7 @@ public class PriceAggregator {
         } catch (TimeoutException e) {
             //  Таймаут случился
         } catch (Exception e) {
-            // Магазин ниасилил - можно было бы эти 2 catch схлопнуть в один, но я их все-таки разведу
+            // Магазин ниасилил и сам сломался - можно было бы эти 2 catch схлопнуть в один, но я их все-таки разведу
         }
 
         final List<Double> resultList = completableFutures
