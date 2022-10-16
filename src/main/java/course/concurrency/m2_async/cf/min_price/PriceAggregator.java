@@ -24,18 +24,35 @@ public class PriceAggregator {
 
     public double getMinPrice(long itemId) {
 
+        final int SLA = 3000;
+        final int LAME_EMPIRICAL_CORRECTION = 20;
+
         final List<CompletableFuture<Double>> completableFutures =
                 shopIds.stream().map(shopId -> getPriceAsync(itemId, shopId)).collect(Collectors.toList());
 
-        final CompletableFuture<Void> allFuturesResult = CompletableFuture
-                .allOf(completableFutures.toArray(new CompletableFuture[completableFutures.size()]));
+        final CompletableFuture<Void> allCompletableFuturesResult = CompletableFuture
+                .allOf(completableFutures.toArray(new CompletableFuture[0]));
 
         try {
-            allFuturesResult.get(3000 - 20, TimeUnit.MILLISECONDS);
+            /*
+            Вот здесь какое-то сырое место, за которое мне стыдно.
+            "Метод getPrice должен выполняться не более трёх секунд" -
+            и вот я влепил какую-то эмпирическую константу, потому что есть
+            же ще еще накладные расходы чисто на исполнение кода, помимо таймаута к CompletableFuture
+
+            Ну ладно, на моем ноутбуке этот прокатывает, а на других?
+            Не люблю я завязку на таймауты - зависит от техники.
+
+            Будет считать, что это типа выкатили на прод, магическую константу засунули
+            в настройки и задокументировали. Группа эксплуатации предупреждена,
+            что константу надо подкручивать, и на всё это навесили мониторинг и
+            алерты с рекомендациями о том, что ВОЗМОЖНО придется это коррекцию подкрутить
+             */
+            allCompletableFuturesResult.get(SLA - LAME_EMPIRICAL_CORRECTION, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
-            System.out.println("Таймаут случился " + e.getMessage());
+            //  Таймаут случился
         } catch (Exception e) {
-            System.out.println("Магазин ниасилил " + e.getMessage());
+            // Магазин ниасилил - можно было бы эти 2 catch схлопнуть в один, но я их все-таки разведу
         }
 
         final List<Double> resultList = completableFutures
