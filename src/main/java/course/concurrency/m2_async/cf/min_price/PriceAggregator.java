@@ -1,6 +1,5 @@
 package course.concurrency.m2_async.cf.min_price;
 
-import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -27,15 +26,11 @@ public class PriceAggregator {
         final var completableFutures =
                 shopIds.stream().map(shopId -> CompletableFuture.supplyAsync(() -> priceRetriever.getPrice(itemId, shopId))).collect(Collectors.toList());
 
-        final CompletableFuture<Void> cf;
-        cf = CompletableFuture
+        CompletableFuture
                 .allOf(completableFutures.toArray(new CompletableFuture[0]))
-                .exceptionally(throwable -> {
-                    System.out.println(MessageFormat.format("Gotcha: ''{0}'', {1}", throwable.getMessage(), throwable));
-                    return null;
-                })
-                .completeOnTimeout(null, CORRECTED_SLA, TimeUnit.MILLISECONDS);
-        cf.join();
+                .exceptionally(throwable -> null)
+                .completeOnTimeout(null, CORRECTED_SLA, TimeUnit.MILLISECONDS)
+                .join();
 
         return completableFutures.stream()
                 .filter(future -> future.isDone() && !future.isCompletedExceptionally())
